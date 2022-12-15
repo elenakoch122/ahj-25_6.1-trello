@@ -1,0 +1,35 @@
+{
+  "name": "ahj-25_6.1-trello",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack serve --mode development",
+    "build": "webpack --mode production",
+    "lint": "eslint .",
+    "test": "jest -coverage --all"
+  },
+  "repository": "https://github.com/elenakoch122/ahj-25_6.1-trello.git",
+  "author": "Elena Kochegarova <lelet@ngs.ru>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.20.5",
+    "@babel/preset-env": "^7.20.2",
+    "babel-jest": "^29.3.1",
+    "babel-loader": "^9.1.0",
+    "css-loader": "^6.7.3",
+    "eslint": "^7.32.0 || ^8.2.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.2",
+    "html-loader": "^4.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "jest": "^29.3.1",
+    "mini-css-extract-plugin": "^2.7.2",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.11.1"
+  },
+  "dependencies": {
+    "core-js": "3"
+  }
+}
