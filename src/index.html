@@ -9,31 +9,40 @@
 <body>
   <h1 class="title">Trello</h1>
 
-  <main class="main">
+  <main class="board">
 
-    <div class="column">
+    <section class="column">
       <h2 class="column__title">Надо сделать</h2>
-      <div class="column__card">Купить продукты<span class="close column__card-close"></span></div>
-      <div class="column__card">Заплатить коммуналку<span class="close column__card-close"></span></div>
-      <button class="column__add">Добавить задачу</button>
-    </div>
+      <div class="column__cards">
+        <div class="column__card">Купить продукты<span class="close column__card-close"></span></div>
+        <div class="column__card">Заплатить коммуналку<span class="close column__card-close"></span></div>
+      </div>
+      <div class="column__footer">
+        <button class="column__add">Добавить задачу</button>
+      </div>
+    </section>
 
-    <div class="column">
+    <section class="column">
       <h2 class="column__title">В процессе</h2>
-      <div class="column__card">Нарядить ёлку<span class="close column__card-close"></span></div>
-      <div class="column__card"><span class="close column__card-close"></span></div>
-      <button class="column__add">Добавить задачу</button>
-    </div>
+      <div class="column__cards">
+        <div class="column__card">Купить продукты<span class="close column__card-close"></span></div>
+        <div class="column__card"><span class="close column__card-close"></span></div>
+      </div>
+      <div class="column__footer">
+        <button class="column__add">Добавить задачу</button>
+      </div>
+    </section>
 
-    <div class="column">
+    <section class="column">
       <h2 class="column__title">Завершено</h2>
-      <div class="column__card"><span class="close column__card-close"></span></div>
-      <div class="column__card"><span class="close column__card-close"></span></div>
-      <button class="column__add">Добавить задачу</button>
-      <!-- <textarea class="column__add-textarea" name="" id="" cols="30" rows="4"></textarea>
-      <button class="column__add-button">Добавить</button>
-      <span class="close column__add-close"></span> -->
-    </div>
+      <div class="column__cards">
+        <div class="column__card"><span class="close column__card-close"></span></div>
+        <div class="column__card"><span class="close column__card-close"></span></div>
+      </div>
+      <div class="column__footer">
+        <button class="column__add">Добавить задачу</button>
+      </div>
+    </section>
 
   </main>
 </body>

@@ -19,13 +19,13 @@ body {
   text-shadow: 5px -3px hsl(240deg 51% 20% / 33%);
 }
 
-.main {
+.board {
   display: flex;
   justify-content: space-evenly;
   align-items: flex-start;
 }
 
-.column, .column__card, .column__add-textarea, .column__add-button {
+.column, .column__card, .column__add-textarea, .column__save {
   border-radius: 3px;
 }
 
@@ -106,7 +106,7 @@ body {
   resize: none;
 }
 
-.column__add-button {
+.column__save {
   margin-right: 5px;
   padding: 5px 10px;
   font-weight: 700;
@@ -117,7 +117,7 @@ body {
   cursor: pointer;
 }
 
-.column__add-button:hover {
+.column__save:hover {
   color: #5ca84d;
   background-color: #fff;
 }
@@ -125,4 +125,12 @@ body {
 .column__add-close::after {
   vertical-align: baseline;
   zoom: 1.2;
+}
+
+.dragged {
+  position: absolute;
+  z-index: 999;
+  transform: rotate(4deg);
+  /* cursor: grabbing; */
+  pointer-events: none;
 }
