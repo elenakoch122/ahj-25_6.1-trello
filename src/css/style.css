@@ -42,6 +42,11 @@ body {
   text-align: center;
 }
 
+.column__cards {
+  position: relative;
+  margin-bottom: 15px;
+}
+
 .column__card {
   position: relative;
   margin-bottom: 7px;
@@ -130,7 +135,12 @@ body {
 .dragged {
   position: absolute;
   z-index: 999;
-  transform: rotate(4deg);
-  /* cursor: grabbing; */
+  width: 100%;
+  /* transform: rotate(4deg); */
+  cursor: grabbing;
   pointer-events: none;
+}
+
+.pushed {
+  margin-top: 30px;
 }
