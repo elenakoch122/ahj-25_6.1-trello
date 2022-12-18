@@ -1,5 +1,5 @@
 export default class State {
   constructor() {
-    this.tasks = [];
+    this.cards = [];
   }
 }

@@ -1,12 +1,15 @@
 /* eslint-disable class-methods-use-this */
 import Card from './Card';
+import State from './State';
 
 export default class Trello {
-  constructor(element) {
-    this.element = element;
+  constructor(stateService) {
+    this.element = document.querySelector('.board');
+    this.stateService = stateService;
+    this.state = new State();
 
     this.onClickCardDelete = this.onClickCardDelete.bind(this);
-    this.onClickCardDrag = this.onClickCardDrag.bind(this);
+    this.onMouseDown = this.onMouseDown.bind(this);
     this.onClickFooter = this.onClickFooter.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
     this.onMouseOver = this.onMouseOver.bind(this);
@@ -31,29 +34,85 @@ export default class Trello {
     const footers = this.element.querySelectorAll('.column__footer');
 
     blocksWithCards.forEach((block) => {
-      block.addEventListener('mousedown', this.onClickCardDrag);
+      block.addEventListener('mousedown', this.onMouseDown);
       block.addEventListener('click', this.onClickCardDelete);
     });
     footers.forEach((f) => f.addEventListener('click', this.onClickFooter));
+
+    window.addEventListener('beforeunload', () => {
+      this.stateService.save(this.state);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const { cards } = this.stateService.load();
+
+      if (cards.length > 0) {
+        this.drawCards(cards);
+      }
+    });
   }
 
-  onClickCardDrag(e) {
+  onMouseDown(e) {
     if (!e.target.classList.contains('column__card')) return;
 
     e.preventDefault();
     this.actualEl = e.target;
+    // const id = ;
+    this.actualCard = this.state.cards.find((c) => c.id === Number(this.actualEl.getAttribute('data-id')));
+
+    this.emptyElem = e.target.cloneNode(true);
+    this.emptyElem.classList.add('empty');
+
+    this.actualEl.parentElement.insertBefore(this.emptyElem, this.actualEl);
     this.actualEl.classList.add('dragged');
 
-    this.shiftY = e.clientY - this.actualEl.offsetTop;
+    this.shiftY = e.clientY - this.actualEl.offsetTop + this.actualEl.offsetHeight + 7;
     this.shiftX = e.clientX - this.actualEl.offsetLeft;
 
-    document.documentElement.addEventListener('mouseup', this.onMouseUp);
     document.documentElement.addEventListener('mouseover', this.onMouseOver);
+    document.documentElement.addEventListener('mouseup', this.onMouseUp);
+  }
+
+  onMouseOver(e) {
+    this.actualEl.style.top = `${e.clientY - this.shiftY}px`;
+    this.actualEl.style.left = `${e.clientX - this.shiftX}px`;
+    this.overCard = e.relatedTarget;
+
+    if (this.overCard.parentElement.classList.contains('column__cards')) {
+      this.overCard.parentElement.insertBefore(this.emptyElem, this.overCard);
+    }
+  }
+
+  onMouseUp() {
+    const parentMouseUpEl = this.overCard.parentElement;
+
+    if (parentMouseUpEl.classList.contains('column__cards')) {
+      parentMouseUpEl.insertBefore(this.actualEl, this.overCard);
+      this.actualCard.column = parentMouseUpEl.parentElement.className;
+    }
+    this.emptyElem.remove();
+    this.emptyElem = null;
+
+    this.actualEl.removeAttribute('style');
+
+    this.actualEl.classList.remove('dragged');
+    this.actualEl = null;
+    this.actualCard = null;
+
+    document.documentElement.removeEventListener('mouseup', this.onMouseUp);
+    document.documentElement.removeEventListener('mouseover', this.onMouseOver);
   }
 
   onClickCardDelete(e) {
     if (!e.target.classList.contains('column__card-close')) return;
     this.deleteCard(e.target);
+  }
+
+  deleteCard(target) {
+    const card = target.closest('.column__card');
+    const cardID = Number(card.getAttribute('data-id'));
+    this.state.cards = this.state.cards.filter((c) => c.id !== cardID);
+    card.remove();
   }
 
   onClickFooter(e) {
@@ -62,39 +121,6 @@ export default class Trello {
     }
 
     if (e.target.classList.contains('column__save')) this.onClickSave(e.target);
-  }
-
-  onMouseUp(e) {
-    console.log(e.target);
-    console.log(e.relatedTarget);
-    const mouseUpEl = e.target;
-    const parentMouseUpEl = mouseUpEl.parentElement;
-
-    if (parentMouseUpEl.classList.contains('column__cards')) {
-      parentMouseUpEl.insertBefore(this.actualEl, mouseUpEl);
-    }
-
-    this.actualEl.removeAttribute('style');
-
-    this.actualEl.classList.remove('dragged');
-    this.actualEl = null;
-
-    document.documentElement.removeEventListener('mouseup', this.onMouseUp);
-    document.documentElement.removeEventListener('mouseover', this.onMouseOver);
-  }
-
-  onMouseOver(e) {
-    console.log(e.target);
-    // e.relatedTarget.classList.remove('pushed');
-    this.actualEl.style.top = `${e.clientY - this.shiftY}px`;
-    this.actualEl.style.left = `${e.clientX - this.shiftX}px`;
-    // console.log(this.actualEl);
-    // e.target.classList.add('pushed');
-  }
-
-  deleteCard(target) {
-    const card = target.closest('.column__card');
-    card.remove();
   }
 
   changeFooter(target) {
@@ -116,14 +142,22 @@ export default class Trello {
     const column = target.closest('.column');
     const columnCards = column.querySelector('.column__cards');
     const msg = column.querySelector('.column__add-textarea').value;
-    const card = new Card(msg);
+    const card = new Card(msg, column.className);
 
-    columnCards.append(card.element);
+    this.state.cards.push(card);
+
+    columnCards.append(card.create());
 
     this.changeFooter(target);
   }
 
-  addCard() {
-
+  drawCards(cards) {
+    cards.forEach((c) => {
+      const card = new Card(c.text, c.column);
+      this.state.cards.push(card);
+      const columns = document.querySelectorAll('.column');
+      const findColumn = [...columns].find((col) => col.className === card.column);
+      findColumn.querySelector('.column__cards').append(card.create());
+    });
   }
 }

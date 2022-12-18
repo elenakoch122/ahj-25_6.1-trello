@@ -1,5 +1,6 @@
 import Trello from './Trello';
+import StateService from './StateService';
 
-const trello = new Trello(document.querySelector('.board'));
-
+const stateService = new StateService(localStorage);
+const trello = new Trello(stateService);
 trello.init();

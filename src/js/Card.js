@@ -1,19 +1,15 @@
 export default class Card {
-  constructor(text) {
+  constructor(text, column) {
     this.text = text;
-    this.element = this.create(text);
+    this.column = column;
+    this.id = performance.now();
   }
 
-  // static get markupCard() {
-  //   return `
-  //   <div class="column__card"><span class="close column__card-close"></span></div>
-  //   `;
-  // }
-
-  create(text) {
+  create() {
     const card = document.createElement('div');
     card.classList.add('column__card');
-    card.textContent = text;
+    card.setAttribute('data-id', this.id);
+    card.textContent = this.text;
 
     const close = document.createElement('span');
     close.classList.add('close', 'column__card-close');

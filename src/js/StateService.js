@@ -4,12 +4,12 @@ export default class StateService {
   }
 
   save(state) {
-    this.storage.setItem('tasks', JSON.stringify(state));
+    this.storage.setItem('cards', JSON.stringify(state));
   }
 
   load() {
     try {
-      return JSON.parse(this.storage.getItem('tasks'));
+      return JSON.parse(this.storage.getItem('cards'));
     } catch (e) {
       throw new Error('Invalid state');
     }

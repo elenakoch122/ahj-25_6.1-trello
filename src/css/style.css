@@ -50,7 +50,7 @@ body {
 .column__card {
   position: relative;
   margin-bottom: 7px;
-  padding: 6px 8px;
+  padding: 8px 15px 8px 6px;
   color: #19194e;
   background-color: #f5f5f5;
   box-shadow: 0px 1px #999999;
@@ -136,11 +136,12 @@ body {
   position: absolute;
   z-index: 999;
   width: 100%;
-  /* transform: rotate(4deg); */
+  transform: rotate(4deg);
   cursor: grabbing;
-  pointer-events: none;
 }
 
-.pushed {
-  margin-top: 30px;
+.empty {
+  z-index: 10;
+  background-color: #d5dbde;
+  color: #d5dbde;
 }
