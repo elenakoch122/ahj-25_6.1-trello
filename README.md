@@ -2,7 +2,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/dppyhxkkg2mau8ft?svg=true)](https://ci.appveyor.com/project/elenakoch122/ahj-25-6-1-trello)
 
-GitHub Pages:
+GitHub Pages:  https://elenakoch122.github.io/ahj-25_6.1-trello/
 
 Правила сдачи задания:
 
