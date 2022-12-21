@@ -1,8 +1,8 @@
 export default class Card {
-  constructor(text, column) {
+  constructor(text, column, id) {
     this.text = text;
     this.column = column;
-    this.id = performance.now();
+    this.id = id;
   }
 
   create() {

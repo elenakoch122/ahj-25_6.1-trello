@@ -7,6 +7,7 @@ export default class Trello {
     this.element = document.querySelector('.board');
     this.stateService = stateService;
     this.state = new State();
+    this.count = 1;
 
     this.onClickCardDelete = this.onClickCardDelete.bind(this);
     this.onClickFooter = this.onClickFooter.bind(this);
@@ -49,6 +50,7 @@ export default class Trello {
       if (cards.length > 0) {
         this.drawCards(cards);
       }
+      console.log(this.state.cards);
     });
   }
 
@@ -58,6 +60,7 @@ export default class Trello {
     e.preventDefault();
     this.actualEl = e.target;
     this.actualCard = this.state.cards.find((c) => c.id === Number(this.actualEl.getAttribute('data-id')));
+    this.actualCardIdx = this.state.cards.indexOf(this.actualCard);
 
     this.emptyElem = e.target.cloneNode(true);
     this.emptyElem.classList.add('empty');
@@ -75,38 +78,79 @@ export default class Trello {
   onMouseOver(e) {
     this.actualEl.style.top = `${e.clientY - this.shiftY}px`;
     this.actualEl.style.left = `${e.clientX - this.shiftX}px`;
-    this.overCard = e.relatedTarget;
 
-    if (this.overCard.parentElement.classList.contains('column__cards')) {
-      this.overCard.parentElement.insertBefore(this.emptyElem, this.overCard);
+    this.overCard = e.relatedTarget;
+    this.overCardParent = this.overCard.parentElement;
+
+    if (this.overCardParent) {
+      if (this.overCardParent.classList.contains('column__cards')) {
+        this.overCardParent.insertBefore(this.emptyElem, this.overCard);
+      }
+
+      if (this.overCardParent.classList.contains('column__footer')) {
+        this.overCardParent.parentElement.querySelector('.column__cards').append(this.emptyElem);
+      }
     }
   }
 
   onMouseUp() {
-    const parentMouseUpEl = this.overCard.parentElement;
-    const isColumn = parentMouseUpEl.parentElement.classList.contains('column');
-    const isBlockWithCards = parentMouseUpEl.classList.contains('column__cards');
+    if (this.overCard.tagName !== 'HTML' && this.overCard.tagName !== 'BODY') {
+      if (this.overCardParent) {
+        const isColumn = this.overCardParent.parentElement.classList.contains('column');
+        const isBoard = this.overCardParent.parentElement.classList.contains('board');
 
-    if (isColumn) {
-      if (isBlockWithCards) {
-        parentMouseUpEl.insertBefore(this.actualEl, this.overCard);
-      } else {
-        parentMouseUpEl.parentElement.querySelector('.column__cards').append(this.actualEl);
+        if (isColumn) {
+          if (this.overCardParent.classList.contains('column__cards')) {
+            const slidingCard = this.state.cards.find((c) => c.id === Number(this.overCard.getAttribute('data-id')));
+            const slidingCardIdx = this.state.cards.indexOf(slidingCard);
+            const delActualEl = this.state.cards.splice(this.actualCardIdx, 1);
+            this.state.cards.splice(slidingCardIdx, 0, delActualEl[0]);
+            this.overCardParent.insertBefore(this.actualEl, this.overCard);
+          }
+
+          if (this.overCardParent.classList.contains('column__footer')) {
+            const columnCards = this.overCardParent.parentElement.querySelector('.column__cards');
+            const slidingCard = this.state.cards.find((c) => c.id === Number(columnCards.children[columnCards.children.length - 2].getAttribute('data-id')));
+            const slidingCardIdx = this.state.cards.indexOf(slidingCard);
+            const delActualEl = this.state.cards.splice(this.actualCardIdx, 1);
+            this.state.cards.splice(slidingCardIdx + 1, 0, delActualEl[0]);
+            columnCards.append(this.actualEl);
+          }
+          this.actualCard.column = this.overCardParent.parentElement.className;
+        }
+
+        if (isBoard) {
+          if (this.overCard.classList.contains('column__footer')) {
+            const columnCards = this.overCardParent.querySelector('.column__cards');
+            const slidingCard = this.state.cards.find((c) => c.id === Number(columnCards.children[columnCards.children.length - 2].getAttribute('data-id')));
+            const slidingCardIdx = this.state.cards.indexOf(slidingCard);
+            const delActualEl = this.state.cards.splice(this.actualCardIdx, 1);
+            this.state.cards.splice(slidingCardIdx + 1, 0, delActualEl[0]);
+            columnCards.append(this.actualEl);
+          }
+        }
       }
-      this.actualCard.column = parentMouseUpEl.parentElement.className;
     }
+    console.log(this.state.cards);
 
     this.emptyElem.remove();
-    this.emptyElem = null;
 
     this.actualEl.removeAttribute('style');
     this.actualEl.classList.remove('dragged');
-    this.actualEl = null;
 
-    this.actualCard = null;
+    this.clearElements();
 
     document.documentElement.removeEventListener('mouseup', this.onMouseUp);
     document.documentElement.removeEventListener('mouseover', this.onMouseOver);
+  }
+
+  clearElements() {
+    this.actualEl = null;
+    this.actualCard = null;
+    this.actualCardIdx = null;
+    this.emptyElem = null;
+    this.overCard = null;
+    this.overCardParent = null;
   }
 
   onClickCardDelete(e) {
@@ -119,6 +163,7 @@ export default class Trello {
     const cardID = Number(card.getAttribute('data-id'));
     this.state.cards = this.state.cards.filter((c) => c.id !== cardID);
     card.remove();
+    console.log(this.state.cards);
   }
 
   onClickFooter(e) {
@@ -148,22 +193,26 @@ export default class Trello {
     const column = target.closest('.column');
     const columnCards = column.querySelector('.column__cards');
     const msg = column.querySelector('.column__add-textarea').value;
-    const card = new Card(msg, column.className);
+    const card = new Card(msg, column.className, this.count);
 
     this.state.cards.push(card);
+    console.log(this.state.cards);
 
     columnCards.append(card.create());
 
     this.changeFooter(target);
+
+    this.count += 1;
   }
 
   drawCards(cards) {
     cards.forEach((c) => {
-      const card = new Card(c.text, c.column);
+      const card = new Card(c.text, c.column, this.count);
       this.state.cards.push(card);
       const columns = document.querySelectorAll('.column');
       const findColumn = [...columns].find((col) => col.className === card.column);
       findColumn.querySelector('.column__cards').append(card.create());
+      this.count += 1;
     });
   }
 }
