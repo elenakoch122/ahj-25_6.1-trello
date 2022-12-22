@@ -50,7 +50,6 @@ export default class Trello {
       if (cards.length > 0) {
         this.drawCards(cards);
       }
-      console.log(this.state.cards);
     });
   }
 
@@ -94,57 +93,20 @@ export default class Trello {
   }
 
   onMouseUp() {
+    this.emptyElem.remove();
+
     if (this.overCard.tagName !== 'HTML' && this.overCard.tagName !== 'BODY') {
-      if (this.overCardParent) {
-        const isColumn = this.overCardParent.parentElement.classList.contains('column');
-        const isBoard = this.overCardParent.parentElement.classList.contains('board');
+      if (this.overCardParent.classList.contains('column__cards')) {
+        this.changeOrderInState('column__cards', this.overCard);
+        this.overCardParent.insertBefore(this.actualEl, this.overCard);
+      }
 
-        if (isColumn) {
-          if (this.overCardParent.classList.contains('column__cards')) {
-            this.emptyElem.remove();
-            const slidingCard = this.state.cards.find((c) => c.id === Number(this.overCard.getAttribute('data-id')));
-            const slidingCardIdx = this.state.cards.indexOf(slidingCard);
-            const delActualEl = this.state.cards.splice(this.actualCardIdx, 1)[0];
-            this.state.cards.splice(slidingCardIdx, 0, delActualEl);
-            this.overCardParent.insertBefore(this.actualEl, this.overCard);
-          }
-
-          if (this.overCardParent.classList.contains('column__footer')) {
-            this.emptyElem.remove();
-            const columnCards = this.overCardParent.parentElement.querySelector('.column__cards');
-            if (columnCards.children.length === 0) {
-              const delActualEl = this.state.cards.splice(this.actualCardIdx, 1)[0];
-              this.state.cards.unshift(delActualEl);
-            }
-
-            if (columnCards.children.length > 0) {
-              const slidingCard = this.state.cards.find((c) => c.id === Number(columnCards.children[columnCards.children.length - 1].getAttribute('data-id')));
-              const slidingCardIdx = this.state.cards.indexOf(slidingCard);
-              const delActualEl = this.state.cards.splice(this.actualCardIdx, 1)[0];
-              this.state.cards.splice(slidingCardIdx + 1, 0, delActualEl);
-            }
-
-            columnCards.append(this.actualEl);
-          }
-          this.actualCard.column = this.overCardParent.parentElement.className;
-        }
-
-        if (isBoard) {
-          if (this.overCard.classList.contains('column__footer')) {
-            this.emptyElem.remove();
-            const columnCards = this.overCardParent.querySelector('.column__cards');
-            const slidingCard = this.state.cards.find((c) => c.id === Number(columnCards.children[columnCards.children.length - 2].getAttribute('data-id')));
-            const slidingCardIdx = this.state.cards.indexOf(slidingCard);
-            const delActualEl = this.state.cards.splice(this.actualCardIdx, 1)[0];
-            this.state.cards.splice(slidingCardIdx + 1, 0, delActualEl);
-            columnCards.append(this.actualEl);
-          }
-        }
+      if (this.overCardParent.classList.contains('column__footer')) {
+        const columnCards = this.overCardParent.parentElement.querySelector('.column__cards');
+        this.changeOrderInState('column__footer', columnCards.children[columnCards.children.length - 1]);
+        columnCards.append(this.actualEl);
       }
     }
-    console.log(this.state.cards);
-
-    // this.emptyElem.remove();
 
     this.actualEl.removeAttribute('style');
     this.actualEl.classList.remove('dragged');
@@ -153,6 +115,35 @@ export default class Trello {
 
     document.documentElement.removeEventListener('mouseup', this.onMouseUp);
     document.documentElement.removeEventListener('mouseover', this.onMouseOver);
+  }
+
+  changeOrderInState(block, card) {
+    let slidingCard;
+    let slidingCardIdx;
+
+    if (card) {
+      slidingCard = this.state.cards.find((c) => c.id === Number(card.getAttribute('data-id')));
+      slidingCardIdx = this.state.cards.indexOf(slidingCard);
+    }
+    const delActualEl = this.state.cards.splice(this.actualCardIdx, 1)[0];
+
+    if (block === 'column__cards') {
+      if (slidingCardIdx > this.actualCardIdx) {
+        this.state.cards.splice(slidingCardIdx - 1, 0, delActualEl);
+      } else {
+        this.state.cards.splice(slidingCardIdx, 0, delActualEl);
+      }
+    }
+
+    if (block === 'column__footer') {
+      if (!card) {
+        this.state.cards.unshift(delActualEl);
+      } else {
+        this.state.cards.splice(slidingCardIdx + 1, 0, delActualEl);
+      }
+    }
+
+    this.actualCard.column = this.overCardParent.parentElement.className;
   }
 
   clearElements() {
@@ -176,7 +167,6 @@ export default class Trello {
     const cardID = Number(card.getAttribute('data-id'));
     this.state.cards = this.state.cards.filter((c) => c.id !== cardID);
     card.remove();
-    console.log(this.state.cards);
   }
 
   onClickFooter(e) {
@@ -209,7 +199,6 @@ export default class Trello {
     const card = new Card(msg, column.className, this.count);
 
     this.state.cards.push(card);
-    console.log(this.state.cards);
 
     columnCards.append(card.create());
 
