@@ -95,7 +95,7 @@ export default class Trello {
   onMouseUp() {
     this.emptyElem.remove();
 
-    if (this.overCard.tagName !== 'HTML' && this.overCard.tagName !== 'BODY') {
+    if (this.overCard.tagName !== 'HTML' && this.overCard.tagName !== 'BODY' && !this.overCard.classList.contains('empty')) {
       if (this.overCardParent.classList.contains('column__cards')) {
         this.changeOrderInState('column__cards', this.overCard);
         this.overCardParent.insertBefore(this.actualEl, this.overCard);
