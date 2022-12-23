@@ -8,6 +8,7 @@
 
 body {
   background-color: rgb(3, 172, 194);
+  overflow: hidden;
 }
 
 .title {
