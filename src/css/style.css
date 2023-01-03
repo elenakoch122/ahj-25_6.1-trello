@@ -139,6 +139,7 @@ body {
   width: 100%;
   transform: rotate(4deg);
   cursor: grabbing;
+  pointer-events: none;
 }
 
 .empty {
