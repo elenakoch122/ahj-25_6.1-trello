@@ -26,7 +26,7 @@ body {
   align-items: flex-start;
 }
 
-.column, .column__card, .column__add-textarea, .column__save {
+.column, .column__card, .column__add-textarea, .column__save, .empty {
   border-radius: 3px;
 }
 
@@ -144,6 +144,7 @@ body {
 
 .empty {
   z-index: 10;
+  margin-bottom: 7px;
   background-color: #d5dbde;
-  color: #d5dbde;
+  /* color: #d5dbde; */
 }

@@ -1,20 +1,23 @@
 /* eslint-disable class-methods-use-this */
 import Card from './Card';
+import DragElem from './DragElem';
+// import GhostElem from './GhostElem';
 import State from './State';
 
-export default class Trello {
+export default class Board {
   constructor(stateService) {
     this.element = document.querySelector('.board');
     this.stateService = stateService;
     this.state = new State();
     this.count = 1;
+    this.dragEl = null;
 
     this.onClickCardDelete = this.onClickCardDelete.bind(this);
     this.onClickFooter = this.onClickFooter.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseOver = this.onMouseOver.bind(this);
-    this.onMouseEnter = this.onMouseEnter.bind(this);
+    // this.onMouseOver = this.onMouseOver.bind(this);
+    // this.onMouseEnter = this.onMouseEnter.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
   }
 
@@ -36,9 +39,9 @@ export default class Trello {
     const blocksWithCards = this.element.querySelectorAll('.column__cards');
     const footers = this.element.querySelectorAll('.column__footer');
 
-    blocksWithCards.forEach((block) => {
-      block.addEventListener('mousedown', this.onMouseDown);
-      block.addEventListener('click', this.onClickCardDelete);
+    blocksWithCards.forEach((card) => {
+      card.addEventListener('mousedown', this.onMouseDown);
+      card.addEventListener('click', this.onClickCardDelete);
     });
     footers.forEach((f) => f.addEventListener('click', this.onClickFooter));
 
@@ -57,125 +60,87 @@ export default class Trello {
 
   onMouseDown(e) {
     if (!e.target.classList.contains('column__card')) return;
+    // console.log(e);
+    // console.log(`x - ${e.clientX}`);
+    // console.log(`y - ${e.clientY}`);
 
     e.preventDefault();
-    this.dragEl = e.target;
-    this.dragCard = this.state.cards.find((c) => c.id === Number(this.dragEl.getAttribute('data-id')));
-    this.dragCardIdx = this.state.cards.indexOf(this.dragCard);
+    this.dragEl = new DragElem(e.target, e.clientX, e.clientY);
+    this.dragEl.card = this.state.cards.find((c) => c.id === Number(this.dragEl.elem.getAttribute('data-id')));
+    this.dragEl.index = this.state.cards.indexOf(this.dragEl.card);
 
-    this.emptyElem = e.target.cloneNode(true);
-    this.emptyElem.classList.add('empty');
+    this.dragEl.bindToDOM();
 
-    this.dragEl.parentElement.insertBefore(this.emptyElem, this.dragEl);
-    this.dragEl.classList.add('dragged');
-
-    // this.shiftY = e.clientY - this.dragEl.offsetTop + this.dragEl.offsetHeight + 7;
-    // this.shiftX = e.clientX - this.dragEl.offsetLeft;
-
-    // this.dragEl.style.top = `${e.clientY - this.shiftY}px`;
-    // this.dragEl.style.left = `${e.clientX - this.shiftX}px`;
-
-    this.shiftY = e.clientY;
-    this.shiftX = e.clientX;
-
-    this.dragEl.style.top = `${e.clientY - this.shiftY}px`;
-    this.dragEl.style.left = `${e.clientX - this.shiftX}px`;
-
-    document.documentElement.addEventListener('mouseover', this.onMouseOver);
+    // document.body.style.cursor = 'grabbing';
+    // document.body.addEventListener('mouseover', this.onMouseOver);
     document.documentElement.addEventListener('mouseup', this.onMouseUp);
     document.documentElement.addEventListener('mousemove', this.onMouseMove);
-    document.querySelectorAll('.column').forEach((col) => col.addEventListener('mouseenter', this.onMouseEnter));
+    // document.querySelectorAll('.column').forEach((col) => col.addEventListener('mouseenter', this.onMouseEnter));
   }
 
   onMouseMove(e) {
-    console.log(e.type);
-    console.log(`MouseMove - ${e.type}`);
-    console.log(`MouseMove e.clientY - ${e.clientY}`);
-    console.log(`MouseMove e.clientX - ${e.clientX}`);
+    // console.log(e.type);
+    // console.log(`e.clientX - ${e.clientX}`);
+    // console.log(`e.clientY - ${e.clientY}`);
+    // console.log(e.target);
+    // console.log(e);
 
-    this.dragEl.style.top = `${e.clientY - this.shiftY}px`;
-    this.dragEl.style.left = `${e.clientX - this.shiftX}px`;
+    this.dragEl.move(e.clientX, e.clientY);
 
     this.underDrag = e.target;
+    // console.log(this.underDrag);
     this.underDragParent = this.underDrag.parentElement;
 
     if (this.underDragParent) {
       if (this.underDragParent.classList.contains('column__cards')) {
-        this.underDragParent.insertBefore(this.emptyElem, this.underDrag);
+        this.underDragParent.insertBefore(this.dragEl.ghost.elem, this.underDrag);
       }
 
       if (this.underDragParent.classList.contains('column__footer')) {
-        this.underDragParent.parentElement.querySelector('.column__cards').append(this.emptyElem);
+        this.underDragParent.parentElement.querySelector('.column__cards').append(this.dragEl.ghost.elem);
       }
 
       if (this.underDrag.classList.contains('column__footer')) {
-        this.underDrag.parentElement.querySelector('.column__cards').append(this.emptyElem);
+        this.underDrag.parentElement.querySelector('.column__cards').append(this.dragEl.ghost.elem);
       }
     }
   }
 
-  onMouseEnter(e) {
+  onMouseUp(e) {
     console.log(e.type);
-    console.log(e);
-  }
-
-  onMouseOver(e) {
-    console.log(`MouseOver - ${e.type}`);
-    console.log(`MouseOver e.clientY - ${e.clientY}`);
-    console.log(`MouseOver e.clientX - ${e.clientX}`);
-    // this.dragEl.style.top = `${e.clientY - this.shiftY}px`;
-    // this.dragEl.style.left = `${e.clientX - this.shiftX}px`;
-
-    // this.underDrag = e.relatedTarget;
-    // this.underDragParent = this.underDrag.parentElement;
-
-    // if (this.underDragParent) {
-    //   if (this.underDragParent.classList.contains('column__cards')) {
-    //     this.underDragParent.insertBefore(this.emptyElem, this.underDrag);
-    //   }
-
-    //   if (this.underDragParent.classList.contains('column__footer')) {
-    //     this.underDragParent.parentElement.querySelector('.column__cards').append(this.emptyElem);
-    //   }
-
-    //   if (this.underDrag.classList.contains('column__footer')) {
-    //     this.underDrag.parentElement.querySelector('.column__cards').append(this.emptyElem);
-    //   }
-    // }
-  }
-
-  onMouseUp() {
-    this.emptyElem.remove();
+    console.log(e.target);
+    // console.log(e);
+    this.dragEl.ghost.delete();
 
     if (this.underDrag.tagName !== 'HTML' && this.underDrag.tagName !== 'BODY' && !this.underDrag.classList.contains('empty')) {
       if (this.underDragParent.classList.contains('column__cards')) {
         this.changeOrderInState('column__cards', this.underDrag);
-        this.underDragParent.insertBefore(this.dragEl, this.underDrag);
+        this.underDragParent.insertBefore(this.dragEl.elem, this.underDrag);
       }
 
       if (this.underDragParent.classList.contains('column__footer')) {
         const columnCards = this.underDragParent.parentElement.querySelector('.column__cards');
         this.changeOrderInState('column__footer', columnCards.children[columnCards.children.length - 1]);
-        columnCards.append(this.dragEl);
+        columnCards.append(this.dragEl.elem);
       }
 
       if (this.underDrag.classList.contains('column__footer')) {
         const columnCards = this.underDrag.parentElement.querySelector('.column__cards');
         this.changeOrderInState('column__footer', columnCards.children[columnCards.children.length - 1]);
-        columnCards.append(this.dragEl);
+        columnCards.append(this.dragEl.elem);
       }
     }
 
-    this.dragEl.removeAttribute('style');
-    this.dragEl.classList.remove('dragged');
+    this.dragEl.elem.removeAttribute('style');
+    this.dragEl.elem.classList.remove('dragged');
 
     this.clearElements();
 
     document.documentElement.removeEventListener('mouseup', this.onMouseUp);
-    document.documentElement.removeEventListener('mouseover', this.onMouseOver);
+    // document.body.removeEventListener('mouseover', this.onMouseOver);
     document.documentElement.removeEventListener('mousemove', this.onMouseMove);
-    document.documentElement.removeEventListener('mouseenter', this.onMouseEnter);
-    document.querySelectorAll('.column').forEach((col) => col.removeEventListener('mouseenter', this.onMouseEnter));
+    // document.body.removeEventListener('mouseenter', this.onMouseEnter);
+    // document.querySelectorAll('.column').forEach((col) => col.removeEventListener('mouseenter', this.onMouseEnter));
   }
 
   changeOrderInState(block, card) {
@@ -186,10 +151,10 @@ export default class Trello {
       slidingCard = this.state.cards.find((c) => c.id === Number(card.getAttribute('data-id')));
       slidingCardIdx = this.state.cards.indexOf(slidingCard);
     }
-    const delActualEl = this.state.cards.splice(this.dragCardIdx, 1)[0];
+    const delActualEl = this.state.cards.splice(this.dragEl.index, 1)[0];
 
     if (block === 'column__cards') {
-      if (slidingCardIdx > this.dragCardIdx) {
+      if (slidingCardIdx > this.dragEl.index) {
         this.state.cards.splice(slidingCardIdx - 1, 0, delActualEl);
       } else {
         this.state.cards.splice(slidingCardIdx, 0, delActualEl);
@@ -205,21 +170,21 @@ export default class Trello {
     }
 
     if (this.underDrag.classList.contains('column__footer')) {
-      this.dragCard.column = this.underDrag.parentElement.className;
+      this.dragEl.card.column = this.underDrag.parentElement.className;
     } else {
-      this.dragCard.column = this.underDragParent.parentElement.className;
+      this.dragEl.card.column = this.underDragParent.parentElement.className;
     }
   }
 
   clearElements() {
     this.dragEl = null;
-    this.dragCard = null;
-    this.dragCardIdx = null;
-    this.emptyElem = null;
+    // this.dragEl.card = null;
+    // this.dragEl.index = null;
+    // this.ghostEl = null;
     this.underDrag = null;
     this.underDragParent = null;
-    this.shiftX = null;
-    this.shiftY = null;
+    // this.dragEl.shiftX = null;
+    // this.dragEl.shiftY = null;
   }
 
   onClickCardDelete(e) {
@@ -247,13 +212,13 @@ export default class Trello {
 
     if (footer.children.length === 1) {
       target.remove();
-      footer.insertAdjacentHTML('beforeend', Trello.markupSaveBtn);
+      footer.insertAdjacentHTML('beforeend', Board.markupSaveBtn);
       return;
     }
 
     if (footer.children.length > 1) {
       [...footer.children].forEach((child) => child.remove());
-      footer.insertAdjacentHTML('beforeend', Trello.markupAddBtn);
+      footer.insertAdjacentHTML('beforeend', Board.markupAddBtn);
     }
   }
 
