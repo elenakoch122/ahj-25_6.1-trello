@@ -11,7 +11,6 @@ export default class Board {
     this.count = 1;
     this.dragEl = null;
     this.underDrag = null;
-    // this.underDragParent = null;
     this.isColumn = null;
     this.isColumnCardUnderDrag = null;
     this.isColumnFooterElemUnderDrag = null;
@@ -63,8 +62,6 @@ export default class Board {
 
   onMouseDown(e) {
     if (!e.target.classList.contains('column__card')) return;
-    // console.log(`onMouseDown, clientX - ${e.clientX}`);
-    // console.log(`onMouseDown, clientY - ${e.clientY}`);
 
     e.preventDefault();
     document.documentElement.style.cursor = 'grabbing';
@@ -78,26 +75,17 @@ export default class Board {
   }
 
   onMouseMove(e) {
-    // console.log(`onMouseMove, clientX - ${e.clientX}`);
-    // console.log(`onMouseMove, clientY - ${e.clientY}`);
-    // console.log('onMouseMove, e.target - ', e.target);
-    // console.log('onMouseMove, underDrag - ', this.underDrag);
-
     this.dragEl.move(e.clientX, e.clientY);
     this.renderGhost(e.target);
   }
 
   onMouseUp() {
-    // console.log('onMouseUp, e.target - ', e.target);
-    console.log('onMouseUp, underDrag - ', this.underDrag);
-
     document.documentElement.style.cursor = 'auto';
 
     if (this.underDrag.tagName !== 'HTML' && this.underDrag.tagName !== 'BODY') {
       if (this.isGhostUnderDrag) {
         if (this.underDrag.nextElementSibling) {
           this.underDrag = this.underDrag.nextElementSibling;
-          // this.underDragParent = this.underDrag.parentElement;
         } else {
           this.underDrag = this.underDrag.closest('.column').querySelector('.column__footer');
         }
@@ -134,19 +122,13 @@ export default class Board {
 
     document.documentElement.removeEventListener('mouseup', this.onMouseUp);
     document.documentElement.removeEventListener('mousemove', this.onMouseMove);
-
-    console.log(this.state.cards);
   }
 
   renderGhost(target) {
     this.isColumn = !!target.closest('.column');
-    // console.log(`renderGhost, target - `, target);
-    // console.log(`renderGhost, isColumn - `, this.isColumn);
-    // console.log(target.closest('.column'));
 
     if (this.isColumn) {
       this.underDrag = target;
-      // this.underDragParent = this.underDrag.parentElement;
       this.isColumnCardUnderDrag = this.underDrag.parentElement.classList.contains('column__cards');
       this.isColumnFooterElemUnderDrag = this.underDrag.parentElement.classList.contains('column__footer');
       this.isColumnFooterUnderDrag = this.underDrag.classList.contains('column__footer');
@@ -203,7 +185,6 @@ export default class Board {
     this.dragEl.clear();
     this.dragEl = null;
     this.underDrag = null;
-    // this.underDragParent = null;
     this.isColumn = null;
     this.isColumnCardUnderDrag = null;
     this.isColumnFooterElemUnderDrag = null;

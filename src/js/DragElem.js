@@ -15,16 +15,13 @@ export default class DragElem {
     this.elem.classList.add('dragged');
     this.shiftX -= this.elem.offsetLeft;
     this.shiftY -= this.elem.offsetTop - this.elem.offsetHeight - 7;
-    // console.dir(this.elem);
     this.elem.style.left = '0px';
     this.elem.style.top = `${this.elem.offsetTop - this.elem.offsetHeight - 7}px`;
-    // console.log(this.elem);
   }
 
   move(x, y) {
     this.elem.style.left = `${x - this.shiftX}px`;
     this.elem.style.top = `${y - this.shiftY}px`;
-    // console.dir(this.elem);
   }
 
   clear() {

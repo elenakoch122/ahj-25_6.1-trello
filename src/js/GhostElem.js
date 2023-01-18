@@ -1,9 +1,9 @@
+/* eslint-disable class-methods-use-this */
 export default class GhostElem {
   constructor(elem) {
     this.elem = this.createGhost(elem);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   createGhost(elem) {
     const ghost = document.createElement('div');
     ghost.classList.add('ghost');
