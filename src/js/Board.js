@@ -1,7 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import Card from './Card';
 import DragElem from './DragElem';
-// import GhostElem from './GhostElem';
 import State from './State';
 
 export default class Board {
@@ -11,13 +10,17 @@ export default class Board {
     this.state = new State();
     this.count = 1;
     this.dragEl = null;
+    this.underDrag = null;
+    // this.underDragParent = null;
+    this.isColumn = null;
+    this.isColumnCardUnderDrag = null;
+    this.isColumnFooterElemUnderDrag = null;
+    this.isColumnFooterUnderDrag = null;
 
     this.onClickCardDelete = this.onClickCardDelete.bind(this);
     this.onClickFooter = this.onClickFooter.bind(this);
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
-    // this.onMouseOver = this.onMouseOver.bind(this);
-    // this.onMouseEnter = this.onMouseEnter.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
   }
 
@@ -60,87 +63,107 @@ export default class Board {
 
   onMouseDown(e) {
     if (!e.target.classList.contains('column__card')) return;
-    // console.log(e);
-    // console.log(`x - ${e.clientX}`);
-    // console.log(`y - ${e.clientY}`);
+    // console.log(`onMouseDown, clientX - ${e.clientX}`);
+    // console.log(`onMouseDown, clientY - ${e.clientY}`);
 
     e.preventDefault();
+    document.documentElement.style.cursor = 'grabbing';
     this.dragEl = new DragElem(e.target, e.clientX, e.clientY);
     this.dragEl.card = this.state.cards.find((c) => c.id === Number(this.dragEl.elem.getAttribute('data-id')));
     this.dragEl.index = this.state.cards.indexOf(this.dragEl.card);
 
-    this.dragEl.bindToDOM();
-
-    // document.body.style.cursor = 'grabbing';
-    // document.body.addEventListener('mouseover', this.onMouseOver);
+    this.dragEl.bindToDOM(e.clientX, e.clientY);
     document.documentElement.addEventListener('mouseup', this.onMouseUp);
     document.documentElement.addEventListener('mousemove', this.onMouseMove);
-    // document.querySelectorAll('.column').forEach((col) => col.addEventListener('mouseenter', this.onMouseEnter));
   }
 
   onMouseMove(e) {
-    // console.log(e.type);
-    // console.log(`e.clientX - ${e.clientX}`);
-    // console.log(`e.clientY - ${e.clientY}`);
-    // console.log(e.target);
-    // console.log(e);
+    // console.log(`onMouseMove, clientX - ${e.clientX}`);
+    // console.log(`onMouseMove, clientY - ${e.clientY}`);
+    // console.log('onMouseMove, e.target - ', e.target);
+    // console.log('onMouseMove, underDrag - ', this.underDrag);
 
     this.dragEl.move(e.clientX, e.clientY);
-
-    this.underDrag = e.target;
-    // console.log(this.underDrag);
-    this.underDragParent = this.underDrag.parentElement;
-
-    if (this.underDragParent) {
-      if (this.underDragParent.classList.contains('column__cards')) {
-        this.underDragParent.insertBefore(this.dragEl.ghost.elem, this.underDrag);
-      }
-
-      if (this.underDragParent.classList.contains('column__footer')) {
-        this.underDragParent.parentElement.querySelector('.column__cards').append(this.dragEl.ghost.elem);
-      }
-
-      if (this.underDrag.classList.contains('column__footer')) {
-        this.underDrag.parentElement.querySelector('.column__cards').append(this.dragEl.ghost.elem);
-      }
-    }
+    this.renderGhost(e.target);
   }
 
-  onMouseUp(e) {
-    console.log(e.type);
-    console.log(e.target);
-    // console.log(e);
-    this.dragEl.ghost.delete();
+  onMouseUp() {
+    // console.log('onMouseUp, e.target - ', e.target);
+    console.log('onMouseUp, underDrag - ', this.underDrag);
 
-    if (this.underDrag.tagName !== 'HTML' && this.underDrag.tagName !== 'BODY' && !this.underDrag.classList.contains('empty')) {
-      if (this.underDragParent.classList.contains('column__cards')) {
-        this.changeOrderInState('column__cards', this.underDrag);
-        this.underDragParent.insertBefore(this.dragEl.elem, this.underDrag);
+    document.documentElement.style.cursor = 'auto';
+
+    if (this.underDrag.tagName !== 'HTML' && this.underDrag.tagName !== 'BODY') {
+      if (this.isGhostUnderDrag) {
+        if (this.underDrag.nextElementSibling) {
+          this.underDrag = this.underDrag.nextElementSibling;
+          // this.underDragParent = this.underDrag.parentElement;
+        } else {
+          this.underDrag = this.underDrag.closest('.column').querySelector('.column__footer');
+        }
       }
 
-      if (this.underDragParent.classList.contains('column__footer')) {
-        const columnCards = this.underDragParent.parentElement.querySelector('.column__cards');
+      this.isColumnCardUnderDrag = this.underDrag.parentElement.classList.contains('column__cards');
+      this.isColumnFooterElemUnderDrag = this.underDrag.parentElement.classList.contains('column__footer');
+      this.isColumnFooterUnderDrag = this.underDrag.classList.contains('column__footer');
+      this.isGhostUnderDrag = this.underDrag.classList.contains('ghost');
+
+      this.dragEl.ghost.delete();
+
+      if (this.isColumnCardUnderDrag) {
+        this.changeOrderInState('column__cards', this.underDrag);
+        this.underDrag.parentElement.insertBefore(this.dragEl.elem, this.underDrag);
+        this.dragEl.ghost.delete();
+      }
+
+      if (this.isColumnFooterElemUnderDrag) {
+        this.dragEl.ghost.delete();
+        const columnCards = this.underDrag.parentElement.parentElement.querySelector('.column__cards');
         this.changeOrderInState('column__footer', columnCards.children[columnCards.children.length - 1]);
         columnCards.append(this.dragEl.elem);
       }
 
-      if (this.underDrag.classList.contains('column__footer')) {
+      if (this.isColumnFooterUnderDrag) {
+        this.dragEl.ghost.delete();
         const columnCards = this.underDrag.parentElement.querySelector('.column__cards');
         this.changeOrderInState('column__footer', columnCards.children[columnCards.children.length - 1]);
         columnCards.append(this.dragEl.elem);
       }
     }
-
-    this.dragEl.elem.removeAttribute('style');
-    this.dragEl.elem.classList.remove('dragged');
-
     this.clearElements();
 
     document.documentElement.removeEventListener('mouseup', this.onMouseUp);
-    // document.body.removeEventListener('mouseover', this.onMouseOver);
     document.documentElement.removeEventListener('mousemove', this.onMouseMove);
-    // document.body.removeEventListener('mouseenter', this.onMouseEnter);
-    // document.querySelectorAll('.column').forEach((col) => col.removeEventListener('mouseenter', this.onMouseEnter));
+
+    console.log(this.state.cards);
+  }
+
+  renderGhost(target) {
+    this.isColumn = !!target.closest('.column');
+    // console.log(`renderGhost, target - `, target);
+    // console.log(`renderGhost, isColumn - `, this.isColumn);
+    // console.log(target.closest('.column'));
+
+    if (this.isColumn) {
+      this.underDrag = target;
+      // this.underDragParent = this.underDrag.parentElement;
+      this.isColumnCardUnderDrag = this.underDrag.parentElement.classList.contains('column__cards');
+      this.isColumnFooterElemUnderDrag = this.underDrag.parentElement.classList.contains('column__footer');
+      this.isColumnFooterUnderDrag = this.underDrag.classList.contains('column__footer');
+      this.isGhostUnderDrag = this.underDrag.classList.contains('ghost');
+
+      if (this.isColumnCardUnderDrag) {
+        this.underDrag.parentElement.insertBefore(this.dragEl.ghost.elem, this.underDrag);
+      }
+
+      if (this.isColumnFooterElemUnderDrag) {
+        this.underDrag.parentElement.parentElement.querySelector('.column__cards').append(this.dragEl.ghost.elem);
+      }
+
+      if (this.isColumnFooterUnderDrag) {
+        this.underDrag.parentElement.querySelector('.column__cards').append(this.dragEl.ghost.elem);
+      }
+    }
   }
 
   changeOrderInState(block, card) {
@@ -172,19 +195,19 @@ export default class Board {
     if (this.underDrag.classList.contains('column__footer')) {
       this.dragEl.card.column = this.underDrag.parentElement.className;
     } else {
-      this.dragEl.card.column = this.underDragParent.parentElement.className;
+      this.dragEl.card.column = this.underDrag.parentElement.parentElement.className;
     }
   }
 
   clearElements() {
+    this.dragEl.clear();
     this.dragEl = null;
-    // this.dragEl.card = null;
-    // this.dragEl.index = null;
-    // this.ghostEl = null;
     this.underDrag = null;
-    this.underDragParent = null;
-    // this.dragEl.shiftX = null;
-    // this.dragEl.shiftY = null;
+    // this.underDragParent = null;
+    this.isColumn = null;
+    this.isColumnCardUnderDrag = null;
+    this.isColumnFooterElemUnderDrag = null;
+    this.isColumnFooterUnderDrag = null;
   }
 
   onClickCardDelete(e) {

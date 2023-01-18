@@ -13,12 +13,22 @@ export default class DragElem {
   bindToDOM() {
     this.elem.parentElement.insertBefore(this.ghost.elem, this.elem);
     this.elem.classList.add('dragged');
-    this.elem.style.left = `${0}px`;
-    this.elem.style.top = `${0}px`;
+    this.shiftX -= this.elem.offsetLeft;
+    this.shiftY -= this.elem.offsetTop - this.elem.offsetHeight - 7;
+    // console.dir(this.elem);
+    this.elem.style.left = '0px';
+    this.elem.style.top = `${this.elem.offsetTop - this.elem.offsetHeight - 7}px`;
+    // console.log(this.elem);
   }
 
   move(x, y) {
     this.elem.style.left = `${x - this.shiftX}px`;
     this.elem.style.top = `${y - this.shiftY}px`;
+    // console.dir(this.elem);
+  }
+
+  clear() {
+    this.elem.removeAttribute('style');
+    this.elem.classList.remove('dragged');
   }
 }
