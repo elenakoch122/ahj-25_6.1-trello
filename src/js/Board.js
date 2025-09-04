@@ -1,4 +1,5 @@
 /* eslint-disable class-methods-use-this */
+import { v4 as uuidv4 } from 'uuid';
 import Card from './Card';
 import DragElem from './DragElem';
 import State from './State';
@@ -8,7 +9,6 @@ export default class Board {
     this.element = document.querySelector('.board');
     this.stateService = stateService;
     this.state = new State();
-    this.count = 1;
     this.dragEl = null;
     this.underDrag = null;
     this.isColumn = null;
@@ -66,7 +66,7 @@ export default class Board {
     e.preventDefault();
     document.documentElement.style.cursor = 'grabbing';
     this.dragEl = new DragElem(e.target, e.clientX, e.clientY);
-    this.dragEl.card = this.state.cards.find((c) => c.id === Number(this.dragEl.elem.getAttribute('data-id')));
+    this.dragEl.card = this.state.cards.find((c) => c.id === this.dragEl.elem.getAttribute('data-id'));
     this.dragEl.index = this.state.cards.indexOf(this.dragEl.card);
 
     this.dragEl.bindToDOM(e.clientX, e.clientY);
@@ -153,7 +153,7 @@ export default class Board {
     let slidingCardIdx;
 
     if (card) {
-      slidingCard = this.state.cards.find((c) => c.id === Number(card.getAttribute('data-id')));
+      slidingCard = this.state.cards.find((c) => c.id === card.getAttribute('data-id'));
       slidingCardIdx = this.state.cards.indexOf(slidingCard);
     }
     const delActualEl = this.state.cards.splice(this.dragEl.index, 1)[0];
@@ -198,7 +198,7 @@ export default class Board {
 
   deleteCard(target) {
     const card = target.closest('.column__card');
-    const cardID = Number(card.getAttribute('data-id'));
+    const cardID = card.getAttribute('data-id');
     this.state.cards = this.state.cards.filter((c) => c.id !== cardID);
     card.remove();
   }
@@ -230,25 +230,22 @@ export default class Board {
     const column = target.closest('.column');
     const columnCards = column.querySelector('.column__cards');
     const msg = column.querySelector('.column__add-textarea').value;
-    const card = new Card(msg, column.className, this.count);
+    const card = new Card(msg, column.className, uuidv4());
 
     this.state.cards.push(card);
 
     columnCards.append(card.create());
 
     this.changeFooter(target);
-
-    this.count += 1;
   }
 
   drawCards(cards) {
     cards.forEach((c) => {
-      const card = new Card(c.text, c.column, this.count);
+      const card = new Card(c.text, c.column, uuidv4());
       this.state.cards.push(card);
       const columns = document.querySelectorAll('.column');
       const findColumn = [...columns].find((col) => col.className === card.column);
       findColumn.querySelector('.column__cards').append(card.create());
-      this.count += 1;
     });
   }
 }
